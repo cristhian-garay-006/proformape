@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Presupuestos - Proforma Rápida</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    
+    <!-- HTML2PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- Controls Sidebar / Header on mobile -->
+        <aside class="controls-panel">
+            <div class="brand">
+                <i class="ri-file-list-3-line"></i>
+                <h1>Proforma Rápida</h1>
+            </div>
+            
+            <p class="description">
+                Completa los datos en la vista previa y descarga tu PDF profesional al instante.
+            </p>
+
+            <button id="download-btn" class="btn btn-primary btn-large">
+                <i class="ri-download-cloud-2-line"></i> Descargar PDF
+            </button>
+
+            <div class="settings-group">
+                <label>Color de Énfasis</label>
+                <input type="color" id="theme-color" value="#4F46E5">
+            </div>
+        </aside>
+
+        <!-- Main Workspace (The "Paper") -->
+        <main class="workspace">
+            <div id="invoice-paper" class="paper">
+                
+                <!-- Invoice Header -->
+                <header class="invoice-header">
+                    <div class="company-logo-area" id="logo-dropzone">
+                        <input type="file" id="logo-upload" accept="image/*" hidden>
+                        <div class="logo-placeholder">
+                            <i class="ri-image-add-line"></i>
+                            <span>Subir Logo</span>
+                        </div>
+                        <img id="company-logo" src="" alt="Company Logo" class="hidden">
+                    </div>
+                    
+                    <div class="invoice-title-block">
+                        <input type="text" class="input-title" value="PRESUPUESTO" placeholder="Título (ej. FACTURA)">
+                        <div class="meta-row">
+                            <span class="meta-label">Fecha:</span>
+                            <input type="date" id="invoice-date" class="input-meta">
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Nº:</span>
+                            <input type="text" value="001" class="input-meta small">
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Info Section -->
+                <section class="info-grid">
+                    <div class="info-column from">
+                        <h3>De:</h3>
+                        <input type="text" class="input-field bold" placeholder="Nombre de tu Empresa">
+                        <textarea class="input-area" placeholder="Dirección&#10;Teléfono&#10;Email&#10;Web" rows="4"></textarea>
+                    </div>
+                    <div class="info-column to">
+                        <h3>Para:</h3>
+                        <input type="text" class="input-field bold" placeholder="Nombre del Cliente">
+                        <textarea class="input-area" placeholder="Dirección del Cliente&#10;Detalles de contacto" rows="4"></textarea>
+                    </div>
+                </section>
+
+                <!-- Items Table -->
+                <section class="items-section">
+                    <div class="table-header">
+                        <div class="col-desc">Descripción</div>
+                        <div class="col-qty">Cant.</div>
+                        <div class="col-price">Precio</div>
+                        <div class="col-total">Total</div>
+                        <div class="col-action"></div>
+                    </div>
+                    
+                    <div id="items-container">
+                        <!-- Items will be injected here via JS -->
+                    </div>
+
+                    <button id="add-item-btn" class="btn btn-secondary btn-sm">
+                        <i class="ri-add-line"></i> Agregar Ítem
+                    </button>
+                </section>
+
+                <!-- Totals -->
+                <section class="totals-section">
+                    <div class="notes-area">
+                        <h3>Notas / Términos:</h3>
+                        <textarea class="input-area" placeholder="Validez del presupuesto: 15 días.&#10;Forma de pago: 50% anticipo." rows="3"></textarea>
+                    </div>
+                    <div class="totals-area">
+                        <div class="total-row">
+                            <span>Subtotal</span>
+                            <span id="subtotal-display">$0.00</span>
+                        </div>
+                        <div class="total-row">
+                            <div class="tax-input-group">
+                                <span>Impuesto %</span>
+                                <input type="number" id="tax-rate" value="0" min="0" max="100">
+                            </div>
+                            <span id="tax-display">$0.00</span>
+                        </div>
+                        <div class="total-row grand-total">
+                            <span>Total</span>
+                            <span id="total-display">$0.00</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Footer -->
+                <footer class="invoice-footer">
+                    <input type="text" class="input-footer" placeholder="¡Gracias por su confianza!">
+                </footer>
+
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Template for an Item Row (Hidden) -->
+    <template id="item-row-template">
+        <div class="item-row">
+            <div class="col-desc">
+                <input type="text" class="input-grid" placeholder="Descripción del producto o servicio">
+            </div>
+            <div class="col-qty">
+                <input type="number" class="input-grid qty-input" value="1" min="1">
+            </div>
+            <div class="col-price">
+                <input type="number" class="input-grid price-input" value="0.00" step="0.01">
+            </div>
+            <div class="col-total">
+                <span class="row-total">$0.00</span>
+            </div>
+            <div class="col-action">
+                <button class="btn-icon delete-row-btn" title="Eliminar"><i class="ri-delete-bin-line"></i></button>
+            </div>
+        </div>
+    </template>
+
+    <script src="script.js"></script>
+</body>
+</html>
